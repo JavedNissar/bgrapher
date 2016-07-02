@@ -19,7 +19,15 @@ tg.router.
     when(['/start'], 'StartController').
     when(['/time'],'TimeController').
     when(['/done'],'DoneController').
+    when(['/help'],'HelpController').
     otherwise('NormalController')
+
+tg.controller('HelpController',function($){
+  $.sendMessage("/start will begin a new session");
+  $.sendMessage("/done can indicate that you're done being grateful if you are currently telling me what you're grateful for");
+  $.sendMessage("If you're telling me your mistakes, /done indicates that you're done telling me your mistakes");
+  $.sendMessage("/time sets the time in which you will be asked to state what you're grateful for. Please format your message like this '/time 7:00' or '/time 8:00 PM'");
+})
 
 tg.controller('TimeController', function($){
   let text = $.message.text;
@@ -62,6 +70,7 @@ tg.controller('StartController',function($){
       $.sendMessage("After you're done saying what you're grateful for, write /done and I'll ask what your mistakes were")
       $.sendMessage("When you're done telling me about your mistakes, write /done again to end our session")
       $.sendMessage("You can change what time I'll ask you at by writing something like '/time 9:00 AM' or '/time 9:00' (in 24-hour time)");
+      $.sendMessage("Get help with /help");
     }
   });
 });
