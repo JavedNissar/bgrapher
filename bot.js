@@ -7,7 +7,9 @@ const datejs = require('datejs');
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 
-
+const GRATEFUL = 'GRATEFUL';
+const MISTAKE = 'MISTAKE';
+const COMPLETE = 'COMPLETE';
 
 mongoose.connect(process.env.MONGODB_URI);
 
@@ -70,12 +72,12 @@ class StartController extends TelegramBaseController{
   startHandler($){
     let user_id = $._message._from._id;
     console.log($);
-    let newUser = new User({user_id:user_id,status:'COMPLETE',time:21*60*60});
+    let newUser = new User({user_id:user_id,status:COMPLETE,time:21*60*60});
     newUser.save(function(err){
       if(err){
         console.log(err);
         User.findOne({user_id:user_id}, function(err,user){
-          user.status = 'GRATEFUL';
+          user.status = GRATEFUL;
           user.save();
           $.sendMessage('What are you grateful for today?');
         })
@@ -102,17 +104,17 @@ class DoneController extends TelegramBaseController{
     let user_id = $._message._from._id;
 
     User.findOne({user_id:user_id},function(err, user){
-      if(user.status === 'COMPLETE'){
+      if(user.status === COMPLETE){
         $.sendMessage('Hi! What are you grateful for?');
-        user.status = 'GRATEFUL';
+        user.status = GRATEFUL;
         user.save();
-      }else if(user.status === 'GRATEFUL'){
+      }else if(user.status === GRATEFUL){
         $.sendMessage("That's great. What were your mistakes?");
-        user.status = 'MISTAKE';
+        user.status = MISTAKE;
         user.save();
-      }else if(user.status === 'MISTAKE'){
+      }else if(user.status === MISTAKE){
         $.sendMessage('Okay, great talking to you!');
-        user.status = 'COMPLETE';
+        user.status = COMPLETE;
         user.save();
       }
     });
@@ -129,11 +131,11 @@ class NormalController extends TelegramBaseController{
     let user_id = $._message._from._id;
 
     User.findOne({user_id:user_id},function(err, user){
-      if(user.status === 'GRATEFUL'){
+      if(user.status === GRATEFUL){
         $.sendMessage('Great! What else are you grateful for?');
-      }else if(user.status === 'MISTAKE'){
+      }else if(user.status === MISTAKE){
         $.sendMessage("I'm sorry to hear that. What other mistakes did you make today?");
-      }else if(user.status === 'COMPLETE'){
+      }else if(user.status === COMPLETE){
         $.sendMessage("If you would like to start a session. Please type /start");
       }
     });
@@ -171,7 +173,7 @@ function sendMessages(){
           let doc = docs[i];
           console.log(doc.user_id);
           tg.api.sendMessage(doc.user_id,"It's time. What are you grateful for today?");
-          doc.status = 'GRATEFUL';
+          doc.status = GRATEFUL;
           doc.save();
         }
       }
