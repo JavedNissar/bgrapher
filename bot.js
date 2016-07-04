@@ -20,9 +20,10 @@ let userSchema = new mongoose.Schema({
   detailing their mistakes, or if they're done talking
   */
   status:{type:String,required:true},
-  //the time that the user requested the beginning of a session
+  /*the time in seconds since the start of the day that the user requested
+  a session should start*/
   time:{type:Number,required:true}
-},{id:false})
+})
 //Validator to ensure a notification whenever the uniqueness of user_id is violated
 userSchema.plugin(uniqueValidator);
 
@@ -48,24 +49,22 @@ class TimeController extends TelegramBaseController{
   timeHandler($) {
     let text = $._message._text;
     let user_id = $._message._from._id;
+    //get the string after the /time part
     let time = Date.parse(text.substring(5));
     let hours = time.getHours();
     let minutes = time.getMinutes();
 
+    //Find the user who sent the message
     User.findOne({user_id:user_id},function(err, user){
       if(err || user === null){
         console.log(err);
       }else{
-        console.log(user)
+        //calculate the time in seconds since the start of the day
         user.time = convertHoursToSeconds(hours)+convertMinutesToSeconds(minutes);
         user.save();
         $.sendMessage('The time you will be messaged at is now '+hours+":"+minutes+" in 24-hour time as per your request");
-        console.log(user);
       }
     })
-
-    console.log(hours);
-    console.log(minutes);
   }
 
   get routes(){
@@ -79,9 +78,9 @@ class TimeController extends TelegramBaseController{
 class StartController extends TelegramBaseController{
   startHandler($){
     let user_id = $._message._from._id;
-    console.log($);
     let newUser = new User({user_id:user_id,status:COMPLETE,time:21*60*60});
     newUser.save(function(err){
+      //if a document with this user_id already exists, start a session
       if(err){
         console.log(err);
         User.findOne({user_id:user_id}, function(err,user){
@@ -113,16 +112,22 @@ class DoneController extends TelegramBaseController{
   doneHandler($){
     let user_id = $._message._from._id;
 
+    //get the user who sent the message
     User.findOne({user_id:user_id},function(err, user){
+      //if the user hasn't started a session yet, start a session
       if(user.status === COMPLETE){
         $.sendMessage('Hi! What are you grateful for?');
         user.status = GRATEFUL;
         user.save();
-      }else if(user.status === GRATEFUL){
+      }
+      //if the user is currently being grateful, switch to having them detail their mistakes
+      else if(user.status === GRATEFUL){
         $.sendMessage("That's great. What were your mistakes?");
         user.status = MISTAKE;
         user.save();
-      }else if(user.status === MISTAKE){
+      }
+      //if the user is detailing their mistakes,end the session
+      else if(user.status === MISTAKE){
         $.sendMessage('Okay, great talking to you!');
         user.status = COMPLETE;
         user.save();
@@ -184,10 +189,8 @@ function sendMessages(){
       if(err){
         console.log(err);
       }else{
-        console.log(docs);
         for(let i = 0;i < docs.length;i++){
           let doc = docs[i];
-          console.log(doc.user_id);
           tg.api.sendMessage(doc.user_id,"It's time. What are you grateful for today?");
           doc.status = GRATEFUL;
           doc.save();
