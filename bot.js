@@ -62,7 +62,12 @@ class TimeController extends TelegramBaseController{
         //calculate the time in seconds since the start of the day
         user.time = convertHoursToSeconds(hours)+convertMinutesToSeconds(minutes);
         user.save();
-        $.sendMessage('The time you will be messaged at is now '+hours+":"+minutes+" in 24-hour time as per your request");
+        let minutesString = minutes.toString();
+        //If the number of minutes is a single digit, add a 0 to the beginning
+        if(minutesString.length == 1){
+          minutesString = "0" + minutesString;
+        }
+        $.sendMessage('The time you will be messaged at is now '+hours+":"+minutesString+" in 24-hour time as per your request");
       }
     })
   }

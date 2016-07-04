@@ -9,17 +9,10 @@
   "author": "Javed Nissar",
   "license": "ISC",
   "dependencies": {
-    "apiai": "^2.0.5",
-    "botbuilder": "^1.0.1",
     "datejs": "^1.0.0-rc3",
     "mongodb": "^2.1.18",
     "mongoose": "^4.5.3",
     "mongoose-unique-validator": "^1.0.2",
-    "nedb": "^1.8.0",
-    "node-localstorage": "^1.3.0",
-    "pg": "^6.0.1",
-    "restify": "^4.1.1",
-    "telegram-node-bot": "3.0.7",
-    "time-detect": "^0.1.1"
+    "telegram-node-bot": "3.0.7"
   }
 }
