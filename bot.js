@@ -241,14 +241,6 @@ tg.router.
     when(['/time'],new TimeController()).
     when(['/done'],new DoneController()).
     when(['/help'],new HelpController()).
-    otherwise(new NormalController())
-
-//Create a server to bind to the PORT
-var server = http.CreateServer(function(request, response){
-    response.writeHead(200, {"Content-Type":'text/html'})
-    response.write('Ping')
-});
-
-server.listen(process.env.PORT);
+    otherwise(new NormalController());
 
 console.log("Start sending messages now!");
