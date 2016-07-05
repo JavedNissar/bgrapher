@@ -13,6 +13,33 @@ const COMPLETE = 'COMPLETE';
 
 mongoose.connect(process.env.MONGODB_URI);
 
+// Returns a random integer between min (included) and max (excluded)
+// Using Math.round() will give you a non-uniform distribution!
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+let gratefulAcknowledgements = ["That sounds great!","Awesome!","Good.","Thanks for letting me know.","Okay."];
+let gratefulFollowups = ["What else are you grateful for?",
+"Can you tell me something else you're grateful for?",
+"Tell me about what else you're grateful for.",
+"Tell me about something else you're grateful for.",
+"Do you mind telling me about something else you're grateful for?"];
+
+let mistakeAcknowledgements = ["That sounds terrible!",
+"That sounds horrible!",
+"My apologies for your troubles.",
+"Oh, that sucks!",
+"Crap, that sounds really bad."];
+
+let mistakeFollowups = ["Can you tell me some other mistakes you made today.",
+"Do you mind telling me what other mistakes you made today.",
+"What other mistakes did you make today?",
+"How about you tell me about some other mistakes you made today.",
+"Mind telling me what other mistakes you made today?"];
+
+
+
 let userSchema = new mongoose.Schema({
   //ID of the user on Telegram
   user_id:{type:Number,required:true,unique:true,dropDups:true,index:true},
@@ -153,9 +180,11 @@ class NormalController extends TelegramBaseController{
 
     User.findOne({user_id:user_id},function(err, user){
       if(user.status === GRATEFUL){
-        $.sendMessage('Great! What else are you grateful for?');
+        let response = gratefulAcknowledgements[getRandomInt(0,gratefulAcknowledgements.length)] + " " +gratefulFollowups[getRandomInt(0,gratefulFollowups.length)];
+        $.sendMessage(response);
       }else if(user.status === MISTAKE){
-        $.sendMessage("I'm sorry to hear that. What other mistakes did you make today?");
+        let response = mistakeAcknowledgements[getRandomInt(0,mistakeAcknowledgements.length)] + " " + mistakeFollowups[getRandomInt(0,mistakeFollowups.length)];
+        $.sendMessage(response);
       }else if(user.status === COMPLETE){
         $.sendMessage("If you would like to start a session. Please type /start");
       }
