@@ -7,7 +7,7 @@ How Do I Install It On My Computer?
 ==================
 First, you have to get a Telegram bot token from
 [Botfather](https://telegram.me/BotFather). Then, get access to a
-MongoDB instance. I recommend [MongoLab](https://mlab.com/). Once you have
+MongoDB instance. I recommend [mLab](https://mlab.com/). Once you have
 both of those complete, please set your environment variables as follows.
 ```Shell
 export MONGODB_URI="Connection URI here"
