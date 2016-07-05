@@ -2,7 +2,8 @@ What Does This Do?
 ====================
 This is a chatbot meant to promote personal reflection by asking you to think
 about what you're grateful for as well as what your mistakes for the day are.
-How Do I Use It?
+You can chat with it [here](telegram.me/Bgrapher_Bot).
+How Do I Install It On My Computer?
 ==================
 First, you have to get a Telegram bot token from
 [Botfather](https://telegram.me/BotFather). Then, get access to a
