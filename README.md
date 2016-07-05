@@ -5,7 +5,8 @@ about what you're grateful for as well as what your mistakes for the day are.
 You can chat with it [here](https://telegram.me/Bgrapher_Bot).
 How Do I Install It On My Computer?
 ==================
-First, you have to get a Telegram bot token from
+Before you start, you'll need [node.js](https://nodejs.org/en/).
+Next, you have to get a Telegram bot token from
 [Botfather](https://telegram.me/BotFather). Then, get access to a
 MongoDB instance. I recommend [mLab](https://mlab.com/). Once you have
 both of those complete, please set your environment variables as follows.
