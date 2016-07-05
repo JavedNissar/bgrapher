@@ -13,6 +13,9 @@
     "mongodb": "^2.1.18",
     "mongoose": "^4.5.3",
     "mongoose-unique-validator": "^1.0.2",
-    "telegram-node-bot": "3.0.7"
+    "telegram-node-bot": "^3.0.7"
+  },
+  "engines":{
+    "node": "6.2.1"
   }
 }
