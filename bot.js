@@ -6,6 +6,7 @@ const tg = new telegram.Telegram(process.env.BGRAPHER_TOKEN);
 const datejs = require('datejs');
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
+const http = require('http');
 
 const GRATEFUL = 'GRATEFUL';
 const MISTAKE = 'MISTAKE';
@@ -241,5 +242,13 @@ tg.router.
     when(['/done'],new DoneController()).
     when(['/help'],new HelpController()).
     otherwise(new NormalController())
+
+//Create a server to bind to the PORT
+var server = http.CreateServer(function(request, response){
+    response.writeHead(200, {"Content-Type":'text/html'})
+    response.write('Ping')
+});
+
+server.listen(process.env.PORT);
 
 console.log("Start sending messages now!");
