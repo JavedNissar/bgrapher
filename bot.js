@@ -234,7 +234,7 @@ function sendMessages(){
   });
 }
 
-setTimeout(sendMessages,convertMinutesToSeconds(5)*1000);
+setInterval(sendMessages,convertMinutesToSeconds(5)*1000);
 
 tg.router.
     when(['/start'], new StartController()).
