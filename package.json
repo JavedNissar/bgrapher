@@ -22,6 +22,6 @@
     "node": "6.3.0"
   },
   "scripts":{
-    "start":"supervisor bot.js"
+    "start":"node bot.js"
   }
 }
