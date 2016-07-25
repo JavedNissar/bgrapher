@@ -72,6 +72,7 @@ class HelpController extends TelegramBaseController{
     $.sendMessage("/done can indicate that you're done being grateful if you are currently telling me what you're grateful for");
     $.sendMessage("If you're telling me your mistakes, /done indicates that you're done telling me your mistakes");
     $.sendMessage("/time sets the time in which you will be asked to state what you're grateful for. Please format your message like this '/time 7:00' or '/time 8:00 PM'");
+    $.sendMessage("If you write '/time', then you will be told the time at which your session is scheduled to begin");
   }
   get routes(){
     return {
