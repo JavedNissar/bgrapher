@@ -20,6 +20,14 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function ensureTwoDigits(number){
+  let numberString = number.toString();
+  if(numberString.length == 1){
+    numberString = "0" + numberString;
+  }
+  return numberString;
+}
+
 let gratefulAcknowledgements = ["That sounds great!","Awesome!","Good.","Thanks for letting me know.","Okay."];
 let gratefulFollowups = ["What else are you grateful for?",
 "Can you tell me something else you're grateful for?",
@@ -77,25 +85,36 @@ class TimeController extends TelegramBaseController{
   timeHandler($) {
     let text = $._message._text;
     let user_id = $._message._from._id;
-    //get the string after the /time part
-    let time = Date.parse(text.substring(5));
-    let hours = time.getHours();
-    let minutes = time.getMinutes();
-
     //Find the user who sent the message
     User.findOne({user_id:user_id},function(err, user){
       if(err || user === null){
         console.log(err);
       }else{
-        //calculate the time in seconds since the start of the day
-        user.time = convertHoursToSeconds(hours)+convertMinutesToSeconds(minutes);
-        user.save();
-        let minutesString = minutes.toString();
-        //If the number of minutes is a single digit, add a 0 to the beginning
-        if(minutesString.length == 1){
-          minutesString = "0" + minutesString;
+        if(text.split(' ').length == 1){
+          console.log(user.time,"User time in seconds");
+          let hours = Math.floor(user.time/(60*60));
+          console.log(hours,"User hour");
+          let remainder = user.time % (60*60);
+          console.log(remainder,"User remainder in seconds");
+          let minutes = Math.floor(remainder/60);
+          console.log(minutes,"User minutes");
+          let hoursString = ensureTwoDigits(hours);
+          let minutesString = ensureTwoDigits(minutes);
+          let time = hoursString + ":" + minutesString;
+          $.sendMessage("You will be reminded to begin a session at " + time + " in 24-hour time");
+        }else{
+          //get the string after the /time part
+          let time = Date.parse(text.substring(5));
+          let hours = time.getHours();
+          let minutes = time.getMinutes();
+          //calculate the time in seconds since the start of the day
+          user.time = convertHoursToSeconds(hours)+convertMinutesToSeconds(minutes);
+          user.save();
+          let minutesString = ensureTwoDigits(minutes);
+          let hoursString = ensureTwoDigits(hours);
+          //If the number of minutes is a single digit, add a 0 to the beginning
+          $.sendMessage('The time you will be messaged at is now '+hoursString+":"+minutesString+" in 24-hour time as per your request");
         }
-        $.sendMessage('The time you will be messaged at is now '+hours+":"+minutesString+" in 24-hour time as per your request");
       }
     })
   }
