@@ -4,24 +4,23 @@
   "description": "A chatbot for personal reflection",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bot.js"
   },
   "author": "Javed Nissar",
   "license": "MIT",
-  "devDependencies":{
-    "supervisor":"0.11.0"
+  "devDependencies": {
+    "supervisor": "0.11.0"
   },
   "dependencies": {
     "datejs": "^1.0.0-rc3",
+    "moment": "^2.14.1",
+    "moment-timezone": "^0.5.5",
     "mongodb": "^2.1.18",
     "mongoose": "^4.5.3",
     "mongoose-unique-validator": "^1.0.2",
     "telegram-node-bot": "^3.0.7"
   },
-  "engines":{
+  "engines": {
     "node": "6.3.0"
-  },
-  "scripts":{
-    "start":"node bot.js"
   }
 }

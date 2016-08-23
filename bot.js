@@ -8,6 +8,8 @@ const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const http = require('http');
 const tzwhere = require('tzwhere');
+const moment = require('moment-timezone');
+
 tzwhere.init();
 
 const GRATEFUL = 'GRATEFUL';
@@ -98,30 +100,29 @@ class TimeController extends TelegramBaseController{
         console.log(err);
       }else{
         if(text.split(' ').length == 1){
-          console.log(user.time,"User time in seconds");
           let hours = Math.floor(user.time/(60*60));
-          console.log(hours,"User hour");
           let remainder = user.time % (60*60);
-          console.log(remainder,"User remainder in seconds");
           let minutes = Math.floor(remainder/60);
-          console.log(minutes,"User minutes");
-          let hoursString = ensureTwoDigits(hours);
-          let minutesString = ensureTwoDigits(minutes);
-          let time = hoursString + ":" + minutesString;
-          $.sendMessage("You will be reminded to begin a session at " + time + " in 24-hour time");
+          let time = moment({
+            hours:hours,
+            minutes:minutes
+          });
+          let timeToDisplay = time.tz(user.timezone).format('h:mm a z');
+
+          $.sendMessage("You will be reminded to begin a session at " + timeToDisplay);
           $.sendMessage("Your current timezone is "+user.timezone);
         }else{
           //get the string after the /time part
-          let time = Date.parse(text.substring(5));
-          let hours = time.getHours();
-          let minutes = time.getMinutes();
-          //calculate the time in seconds since the start of the day
+          let time = moment(text.substring(5),"h:mm a") || moment(text.substring(5),"H:mm");
+          let hours = time.utc().hours();
+          let minutes = time.utc().minutes();
+          //calculate the time in seconds since the start of the data
           user.time = convertHoursToSeconds(hours)+convertMinutesToSeconds(minutes);
           user.save();
           let minutesString = ensureTwoDigits(minutes);
           let hoursString = ensureTwoDigits(hours);
           //If the number of minutes is a single digit, add a 0 to the beginning
-          $.sendMessage('The time you will be messaged at is now '+hoursString+":"+minutesString+" in 24-hour time as per your request");
+          $.sendMessage('The time you will be messaged at is now '+time.tz(user.timezone).format('h:mm a z'));
         }
       }
     })
@@ -149,7 +150,6 @@ class StartController extends TelegramBaseController{
           $.sendMessage('What are you grateful for today?');
         })
       }else{
-        console.log('new user added');
         $.sendMessage("Hey! I'll send you a message at 9 PM every day letting you know that you should state what you're grateful for");
         $.sendMessage("After you're done saying what you're grateful for, write /done and I'll ask what your mistakes were")
         $.sendMessage("When you're done telling me about your mistakes, write /done again to end our session")
@@ -225,7 +225,7 @@ class NormalController extends TelegramBaseController{
             console.log(error);
             $.sendMessage("An error occured");
           }else{
-            user.timezone = timezone;
+            user.timezone = result;
             user.save();
 
             $.sendMessage("Your timezone has now been changed to "+user.timezone);
@@ -251,27 +251,29 @@ have no issue with that.
 */
 function sendMessages(){
   console.log("Sending scheduled messages");
-  let date = new Date();
-  let currentHour = date.getHours();
-  let currentMinutes = date.getMinutes();
-  let currentSeconds = date.getSeconds();
-  let currentTimeInSeconds = convertHoursToSeconds(currentHour) + convertMinutesToSeconds(currentMinutes) + currentSeconds;
+  let now = moment().utc();
+  let currentHours = now.hours();
+  let currentMinutes = now.minutes();
+  let currentTimeInSeconds = convertHoursToSeconds(currentHours) + convertMinutesToSeconds(currentMinutes);
   //5 minutes from current time
-  let futureTimeInSeconds = currentTimeInSeconds + convertMinutesToSeconds(5);
+  let future = moment().add(5,'minutes').utc();
+  let futureHours = future.hours();
+  let futureMinutes = future.minutes();
+  let futureTimeInSeconds = convertHoursToSeconds(futureHours) + convertMinutesToSeconds(futureMinutes);
   User.find({
     'time':{
       '$lt':futureTimeInSeconds,
       '$gt':currentTimeInSeconds
     }
-  }, function(err,docs){
-      if(err){
-        console.log(err);
+  }, function(error,users){
+      if(error){
+        console.log(error);
       }else{
-        for(let i = 0;i < docs.length;i++){
-          let doc = docs[i];
-          tg.api.sendMessage(doc.user_id,"It's time. What are you grateful for today?");
-          doc.status = GRATEFUL;
-          doc.save();
+        for(let i = 0;i < users.length;i++){
+          let user = users[i];
+          tg.api.sendMessage(user.user_id,"It's time. What are you grateful for today?");
+          user.status = GRATEFUL;
+          user.save();
         }
       }
   });
