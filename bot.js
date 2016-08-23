@@ -7,6 +7,8 @@ const datejs = require('datejs');
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const http = require('http');
+const tzwhere = require('tzwhere');
+tzwhere.init();
 
 const GRATEFUL = 'GRATEFUL';
 const MISTAKE = 'MISTAKE';
@@ -20,6 +22,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
+//Renders a number as a two digit string even if it is a 1 digit number like 1
 function ensureTwoDigits(number){
   let numberString = number.toString();
   if(numberString.length == 1){
@@ -58,7 +61,9 @@ let userSchema = new mongoose.Schema({
   status:{type:String,required:true},
   /*the time in seconds since the start of the day that the user requested
   a session should start*/
-  time:{type:Number,required:true}
+  time:{type:Number,required:true},
+  //the timezone that the user is in
+  timezone:{type:String,required:true}
 })
 //Validator to ensure a notification whenever the uniqueness of user_id is violated
 userSchema.plugin(uniqueValidator);
@@ -72,7 +77,8 @@ class HelpController extends TelegramBaseController{
     $.sendMessage("/done can indicate that you're done being grateful if you are currently telling me what you're grateful for");
     $.sendMessage("If you're telling me your mistakes, /done indicates that you're done telling me your mistakes");
     $.sendMessage("/time sets the time in which you will be asked to state what you're grateful for. Please format your message like this '/time 7:00' or '/time 8:00 PM'");
-    $.sendMessage("If you write '/time', then you will be told the time at which your session is scheduled to begin");
+    $.sendMessage("If you write '/time', then you will be told the time at which your session is scheduled to begin and your current timezone");
+    $.sendMessage("You can change your timezone by sending a location");
   }
   get routes(){
     return {
@@ -103,6 +109,7 @@ class TimeController extends TelegramBaseController{
           let minutesString = ensureTwoDigits(minutes);
           let time = hoursString + ":" + minutesString;
           $.sendMessage("You will be reminded to begin a session at " + time + " in 24-hour time");
+          $.sendMessage("Your current timezone is "+user.timezone);
         }else{
           //get the string after the /time part
           let time = Date.parse(text.substring(5));
@@ -131,7 +138,7 @@ class TimeController extends TelegramBaseController{
 class StartController extends TelegramBaseController{
   startHandler($){
     let user_id = $._message._from._id;
-    let newUser = new User({user_id:user_id,status:COMPLETE,time:21*60*60});
+    let newUser = new User({user_id:user_id,status:COMPLETE,time:21*60*60,timezone:'America/Toronto'});
     newUser.save(function(err){
       //if a document with this user_id already exists, start a session
       if(err){
@@ -147,6 +154,7 @@ class StartController extends TelegramBaseController{
         $.sendMessage("After you're done saying what you're grateful for, write /done and I'll ask what your mistakes were")
         $.sendMessage("When you're done telling me about your mistakes, write /done again to end our session")
         $.sendMessage("You can change what time I'll ask you at by writing something like '/time 9:00 AM' or '/time 9:00' (in 24-hour time)");
+        $.sendMessage("The default timezone is America/Toronto and you can change it by sending a location");
         $.sendMessage("Get help with /help");
       }
     });
@@ -200,14 +208,29 @@ class NormalController extends TelegramBaseController{
     let user_id = $._message._from._id;
 
     User.findOne({user_id:user_id},function(err, user){
-      if(user.status === GRATEFUL){
-        let response = gratefulAcknowledgements[getRandomInt(0,gratefulAcknowledgements.length)] + " " +gratefulFollowups[getRandomInt(0,gratefulFollowups.length)];
-        $.sendMessage(response);
-      }else if(user.status === MISTAKE){
-        let response = mistakeAcknowledgements[getRandomInt(0,mistakeAcknowledgements.length)] + " " + mistakeFollowups[getRandomInt(0,mistakeFollowups.length)];
-        $.sendMessage(response);
-      }else if(user.status === COMPLETE){
-        $.sendMessage("If you would like to start a session. Please type /start");
+      if($._message._location === null){
+        if(user.status === GRATEFUL){
+          let response = gratefulAcknowledgements[getRandomInt(0,gratefulAcknowledgements.length)] + " " +gratefulFollowups[getRandomInt(0,gratefulFollowups.length)];
+          $.sendMessage(response);
+        }else if(user.status === MISTAKE){
+          let response = mistakeAcknowledgements[getRandomInt(0,mistakeAcknowledgements.length)] + " " + mistakeFollowups[getRandomInt(0,mistakeFollowups.length)];
+          $.sendMessage(response);
+        }else if(user.status === COMPLETE){
+          $.sendMessage("If you would like to start a session. Please type /start");
+        }
+      }else{
+        const location = $._message._location;
+        tzwhere.tzNameAt(location._latitude,location._longitude,function(error, result){
+          if(error){
+            console.log(error);
+            $.sendMessage("An error occured");
+          }else{
+            user.timezone = timezone;
+            user.save();
+
+            $.sendMessage("Your timezone has now been changed to "+user.timezone);
+          }
+        });
       }
     });
   }
