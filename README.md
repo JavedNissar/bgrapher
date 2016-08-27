@@ -2,7 +2,6 @@ What Does This Do?
 ====================
 This is a chatbot meant to promote personal reflection by asking you to think
 about what you're grateful for as well as what your mistakes for the day are.
-You can chat with it [here](https://telegram.me/Bgrapher_Bot).
 How Do I Install It On My Computer?
 ==================
 Before you start, you'll need [node.js](https://nodejs.org/en/).
